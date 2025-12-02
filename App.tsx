@@ -38,7 +38,7 @@ const App: React.FC = () => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
     const saved = localStorage.getItem('oracle_chat');
     return saved ? JSON.parse(saved) : [
-      { id: 'm1', senderId: 'u2', text: "J'ai pushé les modifs de la carte 3D. @Kiki tu peux check ?", timestamp: new Date(Date.now() - 3600000).toISOString(), sector: Sector.DEV },
+      { id: 'm1', senderId: 'u2', text: "J'ai pushé les modifs de la carte 3D. @Steve tu peux check ?", timestamp: new Date(Date.now() - 3600000).toISOString(), sector: Sector.DEV },
       { id: 'm2', senderId: 'u1', text: "Ça marche, je regarde ça avant la réunion de midi.", timestamp: new Date(Date.now() - 1800000).toISOString(), sector: Sector.DEV }
     ];
   });
@@ -50,6 +50,24 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('oracle_meetings', JSON.stringify(meetings)); }, [meetings]);
   useEffect(() => { localStorage.setItem('oracle_chat', JSON.stringify(chatMessages)); }, [chatMessages]);
   useEffect(() => { localStorage.setItem('oracle_ai_history', JSON.stringify(aiHistory)); }, [aiHistory]);
+
+  // Synchronisation en temps réel entre les onglets
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'oracle_chat' && e.newValue) {
+        setChatMessages(JSON.parse(e.newValue));
+      }
+      if (e.key === 'oracle_tasks' && e.newValue) {
+        setTasks(JSON.parse(e.newValue));
+      }
+      if (e.key === 'oracle_meetings' && e.newValue) {
+        setMeetings(JSON.parse(e.newValue));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Scroll automatique du chat
   useEffect(() => {
@@ -80,7 +98,7 @@ const App: React.FC = () => {
     return (
       <div className="w-screen h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20"></div>
-        <div className="bg-gray-900 border border-white/10 p-8 rounded-3xl shadow-2xl z-10 max-w-2xl w-full text-center">
+        <div className="bg-gray-900 border border-white/10 p-8 rounded-3xl shadow-2xl z-10 max-w-3xl w-full text-center">
           <div className="mb-8">
             <div className="w-16 h-16 mx-auto bg-gradient-to-tr from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4">
               <LayoutGrid size={32} className="text-white" />
@@ -89,7 +107,7 @@ const App: React.FC = () => {
             <p className="text-gray-400">Identifiez-vous pour accéder à l'espace de travail</p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {USERS.map(user => (
               <button
                 key={user.id}
@@ -97,12 +115,12 @@ const App: React.FC = () => {
                 className="group p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-blue-500/50 transition-all flex flex-col items-center gap-3"
               >
                 <div className="relative">
-                   <img src={user.avatar} className="w-16 h-16 rounded-full group-hover:scale-105 transition-transform" alt={user.name} />
+                   <img src={user.avatar} className="w-14 h-14 md:w-16 md:h-16 rounded-full group-hover:scale-105 transition-transform" alt={user.name} />
                    <div className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-blue-500 transition-colors"></div>
                 </div>
                 <div>
-                  <div className="font-semibold text-white group-hover:text-blue-400 transition-colors">{user.name}</div>
-                  <div className="text-xs text-gray-500">{user.role}</div>
+                  <div className="font-semibold text-white group-hover:text-blue-400 transition-colors text-sm md:text-base">{user.name}</div>
+                  <div className="text-[10px] md:text-xs text-gray-500 line-clamp-1">{user.role}</div>
                 </div>
               </button>
             ))}

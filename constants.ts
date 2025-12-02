@@ -1,17 +1,19 @@
+
 import { Sector, TaskStatus, Task, User, Meeting } from './types';
 
 export const USERS: User[] = [
-  { id: 'u1', name: 'Kiki', role: 'Team Lead', avatar: 'https://picsum.photos/id/64/100/100' },
-  { id: 'u2', name: 'Stéphane', role: 'Architecte', avatar: 'https://picsum.photos/id/1005/100/100' },
-  { id: 'u3', name: 'Alice', role: 'Designer', avatar: 'https://picsum.photos/id/338/100/100' },
-  { id: 'u4', name: 'Bob', role: 'Dev Backend', avatar: 'https://picsum.photos/id/177/100/100' },
+  { id: 'u1', name: 'Steve', role: 'Team Lead', avatar: 'https://picsum.photos/id/64/100/100' },
+  { id: 'u2', name: 'Pascale', role: 'Architecte', avatar: 'https://picsum.photos/id/1005/100/100' },
+  { id: 'u3', name: 'Nathalie', role: 'Designer', avatar: 'https://picsum.photos/id/338/100/100' },
+  { id: 'u4', name: 'Ekra', role: 'Dev Backend', avatar: 'https://picsum.photos/id/177/100/100' },
+  { id: 'u5', name: 'Priscille', role: 'Web Analyst', avatar: 'https://picsum.photos/id/342/100/100' },
 ];
 
 export const INITIAL_TASKS: Task[] = [
   {
     id: 't1',
     title: 'Maquette iOS 18 Home',
-    assignee: USERS[2],
+    assignee: USERS[2], // Nathalie
     deadline: '2023-11-15',
     status: TaskStatus.DONE,
     sector: Sector.DESIGN,
@@ -26,7 +28,7 @@ export const INITIAL_TASKS: Task[] = [
   {
     id: 't2',
     title: 'Intégration Carte 3D',
-    assignee: USERS[1],
+    assignee: USERS[1], // Pascale
     deadline: '2023-11-20',
     status: TaskStatus.IN_PROGRESS,
     sector: Sector.DEV,
@@ -39,7 +41,7 @@ export const INITIAL_TASKS: Task[] = [
   {
     id: 't3',
     title: 'Auth System MVVM',
-    assignee: USERS[3],
+    assignee: USERS[3], // Ekra
     deadline: '2023-11-25',
     status: TaskStatus.REVIEW,
     sector: Sector.DEV,
@@ -53,7 +55,7 @@ export const INITIAL_TASKS: Task[] = [
   {
     id: 't4',
     title: 'Plan Marketing Lancement',
-    assignee: USERS[0],
+    assignee: USERS[0], // Steve
     deadline: '2023-12-01',
     status: TaskStatus.TODO,
     sector: Sector.MARKETING,
@@ -65,6 +67,6 @@ export const INITIAL_TASKS: Task[] = [
 ];
 
 export const INITIAL_MEETINGS: Meeting[] = [
-  { id: 'm1', title: 'Sprint Planning', date: '2023-11-15', time: '10:00', attendees: ['u1', 'u2', 'u3', 'u4'], type: 'video' },
+  { id: 'm1', title: 'Sprint Planning', date: '2023-11-15', time: '10:00', attendees: ['u1', 'u2', 'u3', 'u4', 'u5'], type: 'video' },
   { id: 'm2', title: 'Design Review', date: '2023-11-17', time: '14:00', attendees: ['u1', 'u3'], type: 'person' },
 ];
