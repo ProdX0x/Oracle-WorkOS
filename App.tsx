@@ -7,13 +7,49 @@ import VirtualRoom from './components/VirtualRoom';
 import CalendarView from './components/CalendarView';
 import TeamDashboard from './components/TeamDashboard';
 import StrategyView from './components/StrategyView';
+import AuthScreen from './components/AuthScreen'; // Import du nouveau composant
 import { INITIAL_TASKS, INITIAL_MEETINGS, USERS } from './constants';
 import { Sector, Task, Meeting, User, ChatMessage, AnalysisHistoryItem, UserRole } from './types';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'workspace' | 'calendar' | 'video' | 'strategy'>('dashboard');
   const [activeSector, setActiveSector] = useState<Sector>(Sector.GENERAL);
+  
+  // -- AUTHENTIFICATION --
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
+  // Vérification de la session au démarrage
+  useEffect(() => {
+    const checkSession = () => {
+      const savedSession = localStorage.getItem('oracle_session');
+      if (savedSession) {
+        try {
+          const user = JSON.parse(savedSession);
+          setCurrentUser(user);
+        } catch (e) {
+          console.error("Session invalide");
+          localStorage.removeItem('oracle_session');
+        }
+      }
+      setIsAuthChecking(false);
+    };
+    
+    // Petit délai pour simuler un chargement d'app (effet premium)
+    setTimeout(checkSession, 500);
+  }, []);
+
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
+    // Sauvegarde de la session
+    localStorage.setItem('oracle_session', JSON.stringify(user));
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('oracle_session');
+    // On nettoie aussi potentiellement d'autres états volatils si nécessaire
+  };
   
   // -- PERSISTANCE DES DONNÉES --
 
@@ -64,6 +100,10 @@ const App: React.FC = () => {
       if (e.key === 'oracle_meetings' && e.newValue) {
         setMeetings(JSON.parse(e.newValue));
       }
+      // Logout sync (si je me déconnecte dans un onglet, ça me déconnecte partout)
+      if (e.key === 'oracle_session' && !e.newValue) {
+        setCurrentUser(null);
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -92,51 +132,25 @@ const App: React.FC = () => {
     setNewMessage('');
   };
 
-  const getUserById = (id: string) => USERS.find(u => u.id === id);
+  const getUserById = (id: string) => {
+      const staticUser = USERS.find(u => u.id === id);
+      if (staticUser) return staticUser;
+      
+      const localUsers = JSON.parse(localStorage.getItem('oracle_local_users') || '[]');
+      return localUsers.find((u: any) => u.id === id);
+  };
 
-  // -- ÉCRAN DE LOGIN / SÉLECTION UTILISATEUR --
-  if (!currentUser) {
-    return (
-      <div className="w-screen h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20"></div>
-        <div className="bg-gray-900 border border-white/10 p-8 rounded-3xl shadow-2xl z-10 max-w-3xl w-full text-center">
-          <div className="mb-8">
-            <div className="w-16 h-16 mx-auto bg-gradient-to-tr from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4">
-              <LayoutGrid size={32} className="text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Oracle WorkOS</h1>
-            <p className="text-gray-400">Identifiez-vous pour accéder à l'espace de travail</p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {USERS.map(user => (
-              <button
-                key={user.id}
-                onClick={() => setCurrentUser(user)}
-                className="group p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-blue-500/50 transition-all flex flex-col items-center gap-3 relative"
-              >
-                <div className="absolute top-2 right-2">
-                   {user.systemRole === UserRole.ADMIN && <Shield size={12} className="text-yellow-500" />}
-                </div>
-                <div className="relative">
-                   <img src={user.avatar} className="w-14 h-14 md:w-16 md:h-16 rounded-full group-hover:scale-105 transition-transform" alt={user.name} />
-                   <div className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-blue-500 transition-colors"></div>
-                </div>
-                <div>
-                  <div className="font-semibold text-white group-hover:text-blue-400 transition-colors text-sm md:text-base">{user.name}</div>
-                  <div className="text-[10px] md:text-xs text-gray-500 line-clamp-1">{user.role}</div>
-                  <div className={`text-[9px] mt-1 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold inline-block
-                    ${user.systemRole === UserRole.ADMIN ? 'bg-yellow-500/20 text-yellow-500' : 
-                      user.systemRole === UserRole.VISITOR ? 'bg-gray-500/20 text-gray-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                    {user.systemRole}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
+  // -- ÉCRAN DE CHARGEMENT / LOGIN --
+  if (isAuthChecking) {
+     return (
+        <div className="w-screen h-screen bg-black flex items-center justify-center">
+           <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
-      </div>
-    );
+     );
+  }
+
+  if (!currentUser) {
+    return <AuthScreen onLogin={handleLogin} />;
   }
 
   // Filtrage des messages par secteur (ou général)
@@ -218,7 +232,7 @@ const App: React.FC = () => {
         <div className="mt-auto pt-4 border-t border-white/10">
           <div className="flex items-center justify-between px-2 mb-2">
             <span className="text-xs text-gray-500 uppercase font-semibold hidden md:block">Profil</span>
-            <button onClick={() => setCurrentUser(null)} title="Se déconnecter" className="text-gray-500 hover:text-red-400">
+            <button onClick={handleLogout} title="Se déconnecter" className="text-gray-500 hover:text-red-400">
                <LogOut size={14} />
             </button>
           </div>
@@ -331,10 +345,10 @@ const App: React.FC = () => {
                 
                 return (
                   <div key={msg.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
-                    <img src={sender?.avatar} className="w-8 h-8 rounded-full mt-1" alt={sender?.name} />
+                    <img src={sender?.avatar || 'https://ui-avatars.com/api/?background=random'} className="w-8 h-8 rounded-full mt-1" alt={sender?.name || 'User'} />
                     <div className={`flex-1 ${isMe ? 'text-right' : ''}`}>
                       <div className={`flex items-baseline justify-between ${isMe ? 'flex-row-reverse' : ''}`}>
-                        <span className="text-sm font-medium text-gray-200">{sender?.name}</span>
+                        <span className="text-sm font-medium text-gray-200">{sender?.name || 'Utilisateur'}</span>
                         <span className="text-xs text-gray-500 ml-2">
                           {new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                         </span>

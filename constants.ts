@@ -1,12 +1,53 @@
 
 import { Sector, TaskStatus, Task, User, Meeting, UserRole } from './types';
 
+// Mots de passe par défaut pour le test : "1234"
 export const USERS: User[] = [
-  { id: 'u1', name: 'Steve', role: 'Team Lead', systemRole: UserRole.ADMIN, avatar: 'https://picsum.photos/id/64/100/100' },
-  { id: 'u2', name: 'Pascale', role: 'Architecte', systemRole: UserRole.MEMBER, avatar: 'https://picsum.photos/id/1005/100/100' },
-  { id: 'u3', name: 'Nathalie', role: 'Designer', systemRole: UserRole.MEMBER, avatar: 'https://picsum.photos/id/338/100/100' },
-  { id: 'u4', name: 'Ekra', role: 'Dev Backend', systemRole: UserRole.MEMBER, avatar: 'https://picsum.photos/id/177/100/100' },
-  { id: 'u5', name: 'Priscille', role: 'Web Analyst', systemRole: UserRole.VISITOR, avatar: 'https://picsum.photos/id/342/100/100' },
+  { 
+    id: 'u1', 
+    name: 'Steve', 
+    email: 'steve@oracle.com',
+    password: '1234',
+    role: 'Team Lead', 
+    systemRole: UserRole.ADMIN, 
+    avatar: 'https://picsum.photos/id/64/100/100' 
+  },
+  { 
+    id: 'u2', 
+    name: 'Pascale', 
+    email: 'pascale@oracle.com',
+    password: '1234',
+    role: 'Architecte', 
+    systemRole: UserRole.MEMBER, 
+    avatar: 'https://picsum.photos/id/1005/100/100' 
+  },
+  { 
+    id: 'u3', 
+    name: 'Nathalie', 
+    email: 'nathalie@oracle.com',
+    password: '1234',
+    role: 'Designer', 
+    systemRole: UserRole.MEMBER, 
+    avatar: 'https://picsum.photos/id/338/100/100' 
+  },
+  { 
+    id: 'u4', 
+    name: 'Ekra', 
+    email: 'ekra@oracle.com',
+    password: '1234',
+    role: 'Dev Backend', 
+    systemRole: UserRole.MEMBER, 
+    avatar: 'https://picsum.photos/id/177/100/100' 
+  },
+  { 
+    id: 'u5', 
+    name: 'Priscille', 
+    email: 'priscille@oracle.com',
+    password: '1234',
+    role: 'Web Analyst', 
+    systemRole: UserRole.VISITOR, 
+    avatar: 'https://picsum.photos/id/342/100/100' 
+  },
 ];
 
 export const INITIAL_TASKS: Task[] = [

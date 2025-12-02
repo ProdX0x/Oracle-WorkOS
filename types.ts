@@ -22,6 +22,8 @@ export enum UserRole {
 export interface User {
   id: string;
   name: string;
+  email?: string; // Nouveau champ pour l'auth
+  password?: string; // Nouveau champ pour la simulation d'auth locale
   avatar: string;
   role: string; // Titre du poste (ex: Designer)
   systemRole: UserRole; // Rôle technique (ex: Admin)
