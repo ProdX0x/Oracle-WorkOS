@@ -1,16 +1,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { LayoutGrid, Calendar as CalendarIcon, Users, Settings, MessageSquare, Briefcase, Video, Send, LogOut, LayoutDashboard, Shield } from 'lucide-react';
+import { LayoutGrid, Calendar as CalendarIcon, Users, Settings, MessageSquare, Briefcase, Video, Send, LogOut, LayoutDashboard, Shield, Compass } from 'lucide-react';
 import AIPulse from './components/AIPulse';
 import ProjectBoard from './components/ProjectBoard';
 import VirtualRoom from './components/VirtualRoom';
 import CalendarView from './components/CalendarView';
 import TeamDashboard from './components/TeamDashboard';
+import StrategyView from './components/StrategyView';
 import { INITIAL_TASKS, INITIAL_MEETINGS, USERS } from './constants';
 import { Sector, Task, Meeting, User, ChatMessage, AnalysisHistoryItem, UserRole } from './types';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'workspace' | 'calendar' | 'video'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'workspace' | 'calendar' | 'video' | 'strategy'>('dashboard');
   const [activeSector, setActiveSector] = useState<Sector>(Sector.GENERAL);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   
@@ -172,6 +173,14 @@ const App: React.FC = () => {
             <Briefcase size={18} />
             <span className="hidden md:block">Workspace</span>
           </button>
+
+          <button 
+            onClick={() => setActiveTab('strategy')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${activeTab === 'strategy' ? 'bg-white/10 text-white font-medium' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <Compass size={18} />
+            <span className="hidden md:block">Stratégie</span>
+          </button>
           
           <button 
             onClick={() => setActiveTab('video')}
@@ -260,6 +269,14 @@ const App: React.FC = () => {
               sector={activeSector} 
               setTasks={setTasks} 
               currentUser={currentUser}
+            />
+          )}
+
+          {activeTab === 'strategy' && (
+            <StrategyView 
+               tasks={tasks}
+               setTasks={setTasks}
+               currentUser={currentUser}
             />
           )}
 

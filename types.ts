@@ -44,6 +44,11 @@ export interface Task {
   sector: Sector;
   description: string;
   history: TaskActivity[];
+  // Nouveaux champs stratégiques
+  impactScore?: number; // 0 à 100
+  effortScore?: number; // 1 à 10
+  strategicTheme?: string; // ex: "Revenus", "UX", "Tech Debt"
+  aiRationale?: string; // Justification courte de l'IA
 }
 
 export interface Meeting {

@@ -18,6 +18,10 @@ export const INITIAL_TASKS: Task[] = [
     status: TaskStatus.DONE,
     sector: Sector.DESIGN,
     description: 'Finaliser les effets de flou et les icônes selon les guidelines Apple Human Interface. Le but est d\'avoir une fluidité maximale sur les transitions.',
+    impactScore: 85,
+    effortScore: 3,
+    strategicTheme: 'Expérience Utilisateur',
+    aiRationale: 'Améliore directement la perception qualité du produit.',
     history: [
       { id: 'h1', userId: 'u1', type: 'creation', content: 'Tâche créée', timestamp: '2023-11-01T09:00:00' },
       { id: 'h2', userId: 'u3', type: 'status_change', content: 'Passé en En cours', timestamp: '2023-11-02T10:30:00' },
@@ -33,6 +37,9 @@ export const INITIAL_TASKS: Task[] = [
     status: TaskStatus.IN_PROGRESS,
     sector: Sector.DEV,
     description: 'Optimisation Three.js pour mobile. Réduire le poids des textures et implémenter le lazy loading des assets 3D.',
+    impactScore: 60,
+    effortScore: 8,
+    strategicTheme: 'Performance Technique',
     history: [
       { id: 'h5', userId: 'u2', type: 'creation', content: 'Tâche créée', timestamp: '2023-11-05T11:00:00' },
       { id: 'h6', userId: 'u2', type: 'comment', content: 'J\'ai un souci de FPS sur Android, je dois revoir les shaders.', timestamp: '2023-11-18T09:15:00' }
@@ -46,6 +53,10 @@ export const INITIAL_TASKS: Task[] = [
     status: TaskStatus.REVIEW,
     sector: Sector.DEV,
     description: 'Connexion sécurisée avec tokens JWT et refresh tokens. Implémentation du pattern Repository pour la gestion des utilisateurs.',
+    impactScore: 95,
+    effortScore: 5,
+    strategicTheme: 'Sécurité & Infrastructure',
+    aiRationale: 'Fondation critique pour toutes les fonctionnalités utilisateur.',
     history: [
       { id: 'h7', userId: 'u1', type: 'creation', content: 'Tâche créée', timestamp: '2023-11-08T10:00:00' },
       { id: 'h8', userId: 'u4', type: 'status_change', content: 'Passé en En revue', timestamp: '2023-11-22T15:45:00' },
@@ -60,6 +71,9 @@ export const INITIAL_TASKS: Task[] = [
     status: TaskStatus.TODO,
     sector: Sector.MARKETING,
     description: 'Préparer les assets pour les stores (App Store & Play Store). Rédiger le communiqué de presse et préparer la campagne réseaux sociaux.',
+    impactScore: 90,
+    effortScore: 4,
+    strategicTheme: 'Acquisition',
     history: [
        { id: 'h10', userId: 'u1', type: 'creation', content: 'Tâche créée', timestamp: '2023-11-12T08:30:00' }
     ]
