@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Task, User, UserRole, TaskStatus } from '../types';
 import { evaluateTaskStrategy } from '../services/geminiService';
-import { Rocket, Hammer, BrainCircuit, RefreshCw, Filter, ArrowUpRight, AlertCircle, CheckCircle2, Circle, Target } from 'lucide-react';
+import { Rocket, Hammer, BrainCircuit, RefreshCw, Target, Info, X, Zap, TrendingUp, Shield, Layers } from 'lucide-react';
 
 interface StrategyViewProps {
   tasks: Task[];
@@ -13,6 +13,7 @@ interface StrategyViewProps {
 const StrategyView: React.FC<StrategyViewProps> = ({ tasks, setTasks, currentUser }) => {
   const [loadingTasks, setLoadingTasks] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<'ALL' | 'TODO' | 'HIGH_IMPACT'>('ALL');
+  const [showLegend, setShowLegend] = useState(false);
 
   const canAnalyze = currentUser.systemRole !== UserRole.VISITOR;
 
@@ -72,9 +73,9 @@ const StrategyView: React.FC<StrategyViewProps> = ({ tasks, setTasks, currentUse
   };
 
   return (
-    <div className="h-full flex flex-col gap-6">
+    <div className="h-full flex flex-col gap-6 relative">
        {/* Header */}
-       <div className="flex justify-between items-end p-6 bg-gradient-to-r from-emerald-900/20 to-teal-900/20 rounded-3xl border border-white/10 relative overflow-hidden">
+       <div className="flex justify-between items-end p-6 bg-gradient-to-r from-emerald-900/20 to-teal-900/20 rounded-3xl border border-white/10 relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 p-32 bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none"></div>
           <div className="relative z-10">
              <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
@@ -101,7 +102,7 @@ const StrategyView: React.FC<StrategyViewProps> = ({ tasks, setTasks, currentUse
        </div>
 
        {/* Toolbar */}
-       <div className="flex items-center gap-4 px-2">
+       <div className="flex items-center gap-4 px-2 shrink-0">
           <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
              <button 
                 onClick={() => setFilter('ALL')}
@@ -123,15 +124,100 @@ const StrategyView: React.FC<StrategyViewProps> = ({ tasks, setTasks, currentUse
                 Fort Impact
              </button>
           </div>
-          <div className="ml-auto text-xs text-gray-500 uppercase font-semibold">
-             {filteredTasks.length} Tâches
+          
+          <div className="ml-auto flex items-center gap-4">
+            <div className="text-xs text-gray-500 uppercase font-semibold">
+                {filteredTasks.length} Tâches
+            </div>
+            <button 
+                onClick={() => setShowLegend(!showLegend)}
+                className={`p-2 rounded-full transition-colors ${showLegend ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                title="Guide de notation"
+            >
+                <Info size={18} />
+            </button>
           </div>
        </div>
 
        {/* Data Grid */}
-       <div className="flex-1 glass-panel rounded-2xl overflow-hidden border border-white/5 flex flex-col">
+       <div className="flex-1 glass-panel rounded-2xl overflow-hidden border border-white/5 flex flex-col relative">
+          
+          {/* LEGEND POPOVER */}
+          {showLegend && (
+            <div className="absolute top-2 right-2 z-50 w-80 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-5 animate-in fade-in zoom-in duration-200">
+                <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/10">
+                    <h3 className="font-bold text-white flex items-center gap-2">
+                        <Info size={16} className="text-blue-400" /> Guide de Notation
+                    </h3>
+                    <button onClick={() => setShowLegend(false)} className="text-gray-500 hover:text-white">
+                        <X size={16} />
+                    </button>
+                </div>
+                
+                <div className="space-y-5">
+                    {/* Impact Section */}
+                    <div>
+                        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <Rocket size={12} /> Score d'Impact (0-100)
+                        </h4>
+                        <p className="text-[10px] text-gray-500 mb-2">Valeur business apportée par la tâche.</p>
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 text-xs text-gray-300">
+                                <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                                <span className="font-bold text-green-400">80 - 100</span>
+                                <span>Game changer, Prioritaire.</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-300">
+                                <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                                <span className="font-bold text-yellow-400">50 - 79</span>
+                                <span>Important mais pas critique.</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-300">
+                                <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                                <span className="font-bold text-gray-400">0 - 49</span>
+                                <span>Maintenance ou faible valeur.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Effort Section */}
+                    <div>
+                        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <Hammer size={12} /> Score d'Effort (1-10)
+                        </h4>
+                        <div className="flex items-center justify-between text-[10px] text-gray-400 bg-white/5 rounded-lg p-2">
+                            <span>1 = Trivial (1h)</span>
+                            <div className="h-1 w-10 bg-gradient-to-r from-green-500 to-red-500 rounded-full mx-2"></div>
+                            <span>10 = Très Complexe (2 sem+)</span>
+                        </div>
+                    </div>
+
+                    {/* Theme Section */}
+                    <div>
+                        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <Layers size={12} /> Thèmes Stratégiques
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="text-[10px] flex items-center gap-1.5 text-emerald-400 bg-emerald-900/20 px-2 py-1 rounded border border-emerald-500/10">
+                                <TrendingUp size={10} /> Revenus
+                            </div>
+                            <div className="text-[10px] flex items-center gap-1.5 text-pink-400 bg-pink-900/20 px-2 py-1 rounded border border-pink-500/10">
+                                <Zap size={10} /> UX / Expérience
+                            </div>
+                            <div className="text-[10px] flex items-center gap-1.5 text-blue-400 bg-blue-900/20 px-2 py-1 rounded border border-blue-500/10">
+                                <Shield size={10} /> Tech / Sécurité
+                            </div>
+                            <div className="text-[10px] flex items-center gap-1.5 text-purple-400 bg-purple-900/20 px-2 py-1 rounded border border-purple-500/10">
+                                <Layers size={10} /> Autre
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          )}
+
           {/* Table Header */}
-          <div className="grid grid-cols-12 gap-4 p-4 bg-white/5 border-b border-white/5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          <div className="grid grid-cols-12 gap-4 p-4 bg-white/5 border-b border-white/5 text-xs font-semibold text-gray-400 uppercase tracking-wider sticky top-0 backdrop-blur-md z-10">
              <div className="col-span-4 pl-2">Tâche / Résumé</div>
              <div className="col-span-2">Thème</div>
              <div className="col-span-2 text-center">Score Impact</div>
