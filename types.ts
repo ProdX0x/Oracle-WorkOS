@@ -66,6 +66,10 @@ export interface AIAnalysisResult {
   }[];
 }
 
+export interface AnalysisHistoryItem extends AIAnalysisResult {
+  date: string; // string ISO pour compatibilité JSON/LocalStorage
+}
+
 export interface ChatMessage {
   id: string;
   senderId: string;

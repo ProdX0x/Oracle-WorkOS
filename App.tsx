@@ -6,7 +6,7 @@ import ProjectBoard from './components/ProjectBoard';
 import VirtualRoom from './components/VirtualRoom';
 import CalendarView from './components/CalendarView';
 import { INITIAL_TASKS, INITIAL_MEETINGS, USERS } from './constants';
-import { Sector, Task, Meeting, User, ChatMessage } from './types';
+import { Sector, Task, Meeting, User, ChatMessage, AnalysisHistoryItem } from './types';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'workspace' | 'calendar' | 'video'>('workspace');
@@ -27,6 +27,12 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : INITIAL_MEETINGS;
   });
 
+  // Historique IA
+  const [aiHistory, setAiHistory] = useState<AnalysisHistoryItem[]>(() => {
+    const saved = localStorage.getItem('oracle_ai_history');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   // Chat
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
     const saved = localStorage.getItem('oracle_chat');
@@ -42,6 +48,7 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('oracle_tasks', JSON.stringify(tasks)); }, [tasks]);
   useEffect(() => { localStorage.setItem('oracle_meetings', JSON.stringify(meetings)); }, [meetings]);
   useEffect(() => { localStorage.setItem('oracle_chat', JSON.stringify(chatMessages)); }, [chatMessages]);
+  useEffect(() => { localStorage.setItem('oracle_ai_history', JSON.stringify(aiHistory)); }, [aiHistory]);
 
   // Scroll automatique du chat
   useEffect(() => {
@@ -225,8 +232,12 @@ const App: React.FC = () => {
 
         {/* Right Panel - AI & Chat */}
         <aside className="hidden lg:flex w-96 flex-col gap-6 p-8 border-l border-white/10 bg-black/20 backdrop-blur-md z-20">
-          <div className="h-1/3">
-             <AIPulse tasks={tasks} />
+          <div className="h-[45%]">
+             <AIPulse 
+               tasks={tasks} 
+               history={aiHistory}
+               setHistory={setAiHistory}
+             />
           </div>
           
           <div className="flex-1 flex flex-col glass-panel rounded-3xl p-6 relative overflow-hidden">
