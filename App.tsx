@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { LayoutGrid, Calendar as CalendarIcon, Users, Settings, MessageSquare, Briefcase, Video, Send, LogOut, LayoutDashboard } from 'lucide-react';
+import { LayoutGrid, Calendar as CalendarIcon, Users, Settings, MessageSquare, Briefcase, Video, Send, LogOut, LayoutDashboard, Shield } from 'lucide-react';
 import AIPulse from './components/AIPulse';
 import ProjectBoard from './components/ProjectBoard';
 import VirtualRoom from './components/VirtualRoom';
 import CalendarView from './components/CalendarView';
 import TeamDashboard from './components/TeamDashboard';
 import { INITIAL_TASKS, INITIAL_MEETINGS, USERS } from './constants';
-import { Sector, Task, Meeting, User, ChatMessage, AnalysisHistoryItem } from './types';
+import { Sector, Task, Meeting, User, ChatMessage, AnalysisHistoryItem, UserRole } from './types';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'workspace' | 'calendar' | 'video'>('dashboard');
@@ -112,8 +112,11 @@ const App: React.FC = () => {
               <button
                 key={user.id}
                 onClick={() => setCurrentUser(user)}
-                className="group p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-blue-500/50 transition-all flex flex-col items-center gap-3"
+                className="group p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-blue-500/50 transition-all flex flex-col items-center gap-3 relative"
               >
+                <div className="absolute top-2 right-2">
+                   {user.systemRole === UserRole.ADMIN && <Shield size={12} className="text-yellow-500" />}
+                </div>
                 <div className="relative">
                    <img src={user.avatar} className="w-14 h-14 md:w-16 md:h-16 rounded-full group-hover:scale-105 transition-transform" alt={user.name} />
                    <div className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-blue-500 transition-colors"></div>
@@ -121,6 +124,11 @@ const App: React.FC = () => {
                 <div>
                   <div className="font-semibold text-white group-hover:text-blue-400 transition-colors text-sm md:text-base">{user.name}</div>
                   <div className="text-[10px] md:text-xs text-gray-500 line-clamp-1">{user.role}</div>
+                  <div className={`text-[9px] mt-1 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold inline-block
+                    ${user.systemRole === UserRole.ADMIN ? 'bg-yellow-500/20 text-yellow-500' : 
+                      user.systemRole === UserRole.VISITOR ? 'bg-gray-500/20 text-gray-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                    {user.systemRole}
+                  </div>
                 </div>
               </button>
             ))}
@@ -207,10 +215,23 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-3 px-2 bg-white/5 p-2 rounded-xl border border-white/5">
-            <img src={currentUser.avatar} className="w-8 h-8 rounded-full" alt="Profile" />
+            <div className="relative">
+              <img src={currentUser.avatar} className="w-8 h-8 rounded-full" alt="Profile" />
+              {currentUser.systemRole === UserRole.ADMIN && (
+                <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-0.5 border border-black" title="Admin">
+                   <Shield size={8} className="text-black" fill="currentColor" />
+                </div>
+              )}
+            </div>
             <div className="hidden md:block overflow-hidden">
               <div className="text-sm font-medium truncate">{currentUser.name}</div>
-              <div className="text-xs text-gray-500 truncate">{currentUser.role}</div>
+              <div className="flex items-center gap-1.5">
+                 <div className={`w-1.5 h-1.5 rounded-full ${
+                    currentUser.systemRole === UserRole.ADMIN ? 'bg-yellow-500' :
+                    currentUser.systemRole === UserRole.VISITOR ? 'bg-gray-500' : 'bg-blue-500'
+                 }`}></div>
+                 <div className="text-xs text-gray-500 truncate">{currentUser.role}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -273,6 +294,7 @@ const App: React.FC = () => {
                tasks={tasks} 
                history={aiHistory}
                setHistory={setAiHistory}
+               currentUser={currentUser}
              />
           </div>
           

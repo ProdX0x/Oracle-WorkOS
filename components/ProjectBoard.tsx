@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Task, TaskStatus, Sector, User } from '../types';
-import { Calendar as CalendarIcon, Clock, Paperclip, Plus, Send, X, Activity, User as UserIcon, FileText, Trash2, AlertTriangle, CheckSquare, Edit, Save } from 'lucide-react';
+import { Task, TaskStatus, Sector, User, UserRole } from '../types';
+import { Calendar as CalendarIcon, Clock, Paperclip, Plus, Send, X, Activity, User as UserIcon, FileText, Trash2, AlertTriangle, CheckSquare, Edit, Save, Lock } from 'lucide-react';
 import { USERS } from '../constants';
 
 interface ProjectBoardProps {
@@ -17,6 +17,11 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
+  // Permissions Logic
+  const canCreate = currentUser.systemRole !== UserRole.VISITOR;
+  const canEdit = currentUser.systemRole !== UserRole.VISITOR;
+  const canDelete = currentUser.systemRole === UserRole.ADMIN;
+
   // Edit Mode State
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Task>>({});
@@ -54,7 +59,10 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
 
   const handleDrop = (e: React.DragEvent, status: TaskStatus) => {
     e.preventDefault();
-    if (!draggedTask) return;
+    if (!draggedTask || !canEdit) {
+      if (!canEdit) setNotification("Mode lecture seule : modification interdite.");
+      return;
+    }
 
     setTasks(prev => prev.map(t => 
       t.id === draggedTask ? { 
@@ -79,7 +87,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
   };
 
   const handleDeleteTask = () => {
-    if (selectedTask) {
+    if (selectedTask && canDelete) {
       setTasks(prev => prev.filter(t => t.id !== selectedTask.id));
       setSelectedTask(null);
       setShowDeleteConfirm(false);
@@ -127,7 +135,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
   };
 
   const handleSaveEdit = () => {
-    if (!selectedTask || !editForm.title) return;
+    if (!selectedTask || !editForm.title || !canEdit) return;
 
     setTasks(prev => prev.map(t => {
       if (t.id === selectedTask.id) {
@@ -208,12 +216,14 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
           {USERS.map(u => (
             <img key={u.id} src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full border-2 border-black" title={u.name} />
           ))}
-          <button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/20 hover:bg-white/20 hover:border-white/40 transition-all"
-          >
-            <Plus size={14} />
-          </button>
+          {canCreate && (
+            <button 
+              onClick={() => setIsCreateModalOpen(true)}
+              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/20 hover:bg-white/20 hover:border-white/40 transition-all"
+            >
+              <Plus size={14} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -233,10 +243,10 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
               {filteredTasks.filter(t => t.status === status).map(task => (
                 <div 
                   key={task.id}
-                  draggable
+                  draggable={canEdit}
                   onDragStart={() => setDraggedTask(task.id)}
                   onClick={() => setSelectedTask(task)}
-                  className="glass-panel p-4 rounded-xl cursor-pointer hover:bg-white/10 transition-colors group relative"
+                  className={`glass-panel p-4 rounded-xl cursor-pointer hover:bg-white/10 transition-colors group relative ${!canEdit ? 'cursor-default' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-xs text-blue-300 bg-blue-900/30 px-2 py-0.5 rounded">{task.sector}</span>
@@ -259,15 +269,17 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
                   </div>
                 </div>
               ))}
-              <button 
-                onClick={() => {
-                  setNewTask(prev => ({...prev, status}));
-                  setIsCreateModalOpen(true);
-                }}
-                className="w-full py-2 border border-dashed border-white/10 rounded-xl text-gray-500 text-sm hover:border-white/20 hover:text-gray-300 transition-colors"
-              >
-                + Nouvelle Tâche
-              </button>
+              {canCreate && (
+                <button 
+                  onClick={() => {
+                    setNewTask(prev => ({...prev, status}));
+                    setIsCreateModalOpen(true);
+                  }}
+                  className="w-full py-2 border border-dashed border-white/10 rounded-xl text-gray-500 text-sm hover:border-white/20 hover:text-gray-300 transition-colors"
+                >
+                  + Nouvelle Tâche
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -327,31 +339,42 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
               </div>
 
               <div className="flex items-center gap-2">
-                {isEditing ? (
-                  <button 
-                    onClick={handleSaveEdit}
-                    className="p-2 bg-green-500/20 text-green-400 rounded-full hover:bg-green-500/30 transition-colors"
-                    title="Enregistrer"
-                  >
-                    <Save size={20} />
-                  </button>
+                {/* EDIT BUTTON LOGIC */}
+                {canEdit ? (
+                  isEditing ? (
+                    <button 
+                      onClick={handleSaveEdit}
+                      className="p-2 bg-green-500/20 text-green-400 rounded-full hover:bg-green-500/30 transition-colors"
+                      title="Enregistrer"
+                    >
+                      <Save size={20} />
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => setIsEditing(true)}
+                      className="p-2 bg-blue-500/10 text-blue-400 rounded-full hover:bg-blue-500/20 transition-colors"
+                      title="Modifier"
+                    >
+                      <Edit size={20} />
+                    </button>
+                  )
                 ) : (
-                  <button 
-                    onClick={() => setIsEditing(true)}
-                    className="p-2 bg-blue-500/10 text-blue-400 rounded-full hover:bg-blue-500/20 transition-colors"
-                    title="Modifier"
-                  >
-                    <Edit size={20} />
-                  </button>
+                   <div className="p-2 text-gray-500" title="Lecture seule">
+                     <Lock size={20} />
+                   </div>
                 )}
                 
-                <button 
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="p-2 bg-red-500/10 text-red-400 rounded-full hover:bg-red-500/20 transition-colors"
-                  title="Supprimer la tâche"
-                >
-                  <Trash2 size={20} />
-                </button>
+                {/* DELETE BUTTON LOGIC */}
+                {canDelete && (
+                  <button 
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="p-2 bg-red-500/10 text-red-400 rounded-full hover:bg-red-500/20 transition-colors"
+                    title="Supprimer la tâche"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                )}
+
                 <button 
                   onClick={() => setSelectedTask(null)}
                   className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"

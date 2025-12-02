@@ -1,12 +1,12 @@
 
-import { Sector, TaskStatus, Task, User, Meeting } from './types';
+import { Sector, TaskStatus, Task, User, Meeting, UserRole } from './types';
 
 export const USERS: User[] = [
-  { id: 'u1', name: 'Steve', role: 'Team Lead', avatar: 'https://picsum.photos/id/64/100/100' },
-  { id: 'u2', name: 'Pascale', role: 'Architecte', avatar: 'https://picsum.photos/id/1005/100/100' },
-  { id: 'u3', name: 'Nathalie', role: 'Designer', avatar: 'https://picsum.photos/id/338/100/100' },
-  { id: 'u4', name: 'Ekra', role: 'Dev Backend', avatar: 'https://picsum.photos/id/177/100/100' },
-  { id: 'u5', name: 'Priscille', role: 'Web Analyst', avatar: 'https://picsum.photos/id/342/100/100' },
+  { id: 'u1', name: 'Steve', role: 'Team Lead', systemRole: UserRole.ADMIN, avatar: 'https://picsum.photos/id/64/100/100' },
+  { id: 'u2', name: 'Pascale', role: 'Architecte', systemRole: UserRole.MEMBER, avatar: 'https://picsum.photos/id/1005/100/100' },
+  { id: 'u3', name: 'Nathalie', role: 'Designer', systemRole: UserRole.MEMBER, avatar: 'https://picsum.photos/id/338/100/100' },
+  { id: 'u4', name: 'Ekra', role: 'Dev Backend', systemRole: UserRole.MEMBER, avatar: 'https://picsum.photos/id/177/100/100' },
+  { id: 'u5', name: 'Priscille', role: 'Web Analyst', systemRole: UserRole.VISITOR, avatar: 'https://picsum.photos/id/342/100/100' },
 ];
 
 export const INITIAL_TASKS: Task[] = [

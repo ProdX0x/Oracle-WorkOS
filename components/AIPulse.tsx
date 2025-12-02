@@ -1,31 +1,35 @@
 
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Sparkles, BrainCircuit, RefreshCw, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Minus, History, Clock, XCircle, Maximize2, X, ChevronRight } from 'lucide-react';
+import { Sparkles, BrainCircuit, RefreshCw, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Minus, History, Clock, XCircle, Maximize2, X, ChevronRight, Lock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
-import { Task, AIAnalysisResult, AnalysisHistoryItem } from '../types';
+import { Task, AIAnalysisResult, AnalysisHistoryItem, User, UserRole } from '../types';
 import { analyzeProjectProgress } from '../services/geminiService';
 
 interface AIPulseProps {
   tasks: Task[];
   history: AnalysisHistoryItem[];
   setHistory: React.Dispatch<React.SetStateAction<AnalysisHistoryItem[]>>;
+  currentUser: User;
 }
 
-const AIPulse: React.FC<AIPulseProps> = ({ tasks, history, setHistory }) => {
-  const [analysis, setAnalysis] = useState<AIAnalysisResult | null>(null);
+const AIPulse: React.FC<AIPulseProps> = ({ tasks, history, setHistory, currentUser }) => {
+  const [analysis, setAnalysis] = useState<AnalysisHistoryItem | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false); // État pour la fenêtre modale
+  
+  const canGenerate = currentUser.systemRole !== UserRole.VISITOR;
 
   const handleAnalyze = async () => {
+    if (!canGenerate) return;
     setLoading(true);
     setError(null);
     try {
       const result = await analyzeProjectProgress(tasks);
       const resultWithDate: AnalysisHistoryItem = { ...result, date: new Date().toISOString() };
       
-      setAnalysis(result);
+      setAnalysis(resultWithDate);
       setHistory(prev => [resultWithDate, ...prev]); // Persistance via App.tsx
     } catch (e: any) {
       console.error(e);
@@ -171,14 +175,22 @@ const AIPulse: React.FC<AIPulseProps> = ({ tasks, history, setHistory }) => {
              >
                <Maximize2 size={16} />
              </button>
-             <button
-              onClick={handleAnalyze}
-              disabled={loading}
-              className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all text-xs font-medium disabled:opacity-50"
-            >
-              {loading ? <RefreshCw className="animate-spin" size={14} /> : <Sparkles size={14} />}
-              <span className="hidden xl:inline">{loading ? '...' : 'Générer'}</span>
-            </button>
+             
+             {canGenerate ? (
+                <button
+                  onClick={handleAnalyze}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all text-xs font-medium disabled:opacity-50"
+                >
+                  {loading ? <RefreshCw className="animate-spin" size={14} /> : <Sparkles size={14} />}
+                  <span className="hidden xl:inline">{loading ? '...' : 'Générer'}</span>
+                </button>
+             ) : (
+                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg text-xs font-medium text-gray-500 cursor-not-allowed" title="Réservé aux membres">
+                   <Lock size={14} />
+                   <span className="hidden xl:inline">Privé</span>
+                </div>
+             )}
           </div>
         </div>
 
@@ -187,7 +199,11 @@ const AIPulse: React.FC<AIPulseProps> = ({ tasks, history, setHistory }) => {
           {!analysis && !loading && !error && history.length === 0 && (
             <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 p-4">
               <Sparkles className="w-12 h-12 mb-3 opacity-20" />
-              <p className="text-xs">Cliquez sur Générer pour lancer l'analyse.</p>
+              <p className="text-xs">
+                {canGenerate 
+                  ? "Cliquez sur Générer pour lancer l'analyse." 
+                  : "Le mode visiteur ne permet pas de générer de nouveaux rapports."}
+              </p>
             </div>
           )}
 
@@ -299,14 +315,16 @@ const AIPulse: React.FC<AIPulseProps> = ({ tasks, history, setHistory }) => {
                        </div>
                     </div>
                     <div className="flex items-center gap-3">
-                       <button
-                          onClick={handleAnalyze}
-                          disabled={loading}
-                          className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
-                       >
-                          {loading ? <RefreshCw className="animate-spin" /> : <Sparkles />}
-                          {loading ? 'Analyse...' : 'Nouvelle Analyse'}
-                       </button>
+                       {canGenerate && (
+                          <button
+                            onClick={handleAnalyze}
+                            disabled={loading}
+                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
+                          >
+                            {loading ? <RefreshCw className="animate-spin" /> : <Sparkles />}
+                            {loading ? 'Analyse...' : 'Nouvelle Analyse'}
+                          </button>
+                       )}
                        <button 
                           onClick={() => setIsExpanded(false)}
                           className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors"
@@ -331,7 +349,7 @@ const AIPulse: React.FC<AIPulseProps> = ({ tasks, history, setHistory }) => {
                     ) : (
                        <div className="h-full flex flex-col items-center justify-center text-gray-500">
                           <BrainCircuit size={64} className="mb-4 opacity-20" />
-                          <p className="text-lg">Sélectionnez un rapport dans l'historique ou lancez une nouvelle analyse.</p>
+                          <p className="text-lg">Sélectionnez un rapport dans l'historique {canGenerate ? 'ou lancez une nouvelle analyse' : ''}.</p>
                        </div>
                     )}
                  </div>

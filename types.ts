@@ -13,11 +13,18 @@ export enum TaskStatus {
   DONE = 'Terminé'
 }
 
+export enum UserRole {
+  ADMIN = 'Admin',
+  MEMBER = 'Membre',
+  VISITOR = 'Visiteur'
+}
+
 export interface User {
   id: string;
   name: string;
   avatar: string;
-  role: string;
+  role: string; // Titre du poste (ex: Designer)
+  systemRole: UserRole; // Rôle technique (ex: Admin)
 }
 
 export interface TaskActivity {
