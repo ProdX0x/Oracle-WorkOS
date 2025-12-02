@@ -1,0 +1,8 @@
+{
+  "name": "Oracle WorkOS",
+  "description": "Plateforme collaborative immersive pour l'équipe Oracle Navigator. Gestion de projet IA, espaces visioconférence 3D et suivi temps réel.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
