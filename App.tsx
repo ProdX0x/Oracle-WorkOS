@@ -1,15 +1,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { LayoutGrid, Calendar as CalendarIcon, Users, Settings, MessageSquare, Briefcase, Video, Send, LogOut } from 'lucide-react';
+import { LayoutGrid, Calendar as CalendarIcon, Users, Settings, MessageSquare, Briefcase, Video, Send, LogOut, LayoutDashboard } from 'lucide-react';
 import AIPulse from './components/AIPulse';
 import ProjectBoard from './components/ProjectBoard';
 import VirtualRoom from './components/VirtualRoom';
 import CalendarView from './components/CalendarView';
+import TeamDashboard from './components/TeamDashboard';
 import { INITIAL_TASKS, INITIAL_MEETINGS, USERS } from './constants';
 import { Sector, Task, Meeting, User, ChatMessage, AnalysisHistoryItem } from './types';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'workspace' | 'calendar' | 'video'>('workspace');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'workspace' | 'calendar' | 'video'>('dashboard');
   const [activeSector, setActiveSector] = useState<Sector>(Sector.GENERAL);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   
@@ -131,6 +132,14 @@ const App: React.FC = () => {
           <div className="text-xs font-semibold text-gray-500 uppercase px-3 mb-2 hidden md:block">Navigation</div>
           
           <button 
+            onClick={() => setActiveTab('dashboard')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-white/10 text-white font-medium' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <LayoutDashboard size={18} />
+            <span className="hidden md:block">Mon Espace</span>
+          </button>
+
+          <button 
             onClick={() => setActiveTab('workspace')}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${activeTab === 'workspace' ? 'bg-white/10 text-white font-medium' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
           >
@@ -197,6 +206,15 @@ const App: React.FC = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-purple-600/10 rounded-full blur-[100px]"></div>
 
         <div className="flex-1 p-4 md:p-8 flex flex-col gap-6 z-10 overflow-hidden relative w-full lg:w-2/3">
+          
+          {activeTab === 'dashboard' && (
+            <TeamDashboard 
+              currentUser={currentUser}
+              tasks={tasks}
+              meetings={meetings}
+            />
+          )}
+
           {activeTab === 'workspace' && (
             <ProjectBoard 
               tasks={tasks} 
@@ -260,7 +278,7 @@ const App: React.FC = () => {
                     <div className={`flex-1 ${isMe ? 'text-right' : ''}`}>
                       <div className={`flex items-baseline justify-between ${isMe ? 'flex-row-reverse' : ''}`}>
                         <span className="text-sm font-medium text-gray-200">{sender?.name}</span>
-                        <span className="text-[10px] text-gray-500 ml-2">
+                        <span className="text-xs text-gray-500 ml-2">
                           {new Date(msg.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
