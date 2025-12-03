@@ -1,17 +1,18 @@
+
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Video, Users, Clock, Calendar as CalendarIcon, X, CheckCircle2 } from 'lucide-react';
 import { Task, Meeting, User } from '../types';
-import { USERS } from '../constants';
 
 interface CalendarViewProps {
   tasks: Task[];
   meetings: Meeting[];
+  users: User[]; // Injection dynamique
   onMoveTask: (taskId: string, newDate: string) => void;
   onMoveMeeting: (meetingId: string, newDate: string) => void;
   onAddMeeting: (meeting: Meeting) => void;
 }
 
-const CalendarView: React.FC<CalendarViewProps> = ({ tasks, meetings, onMoveTask, onMoveMeeting, onAddMeeting }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ tasks, meetings, users, onMoveTask, onMoveMeeting, onAddMeeting }) => {
   // Initialize to November 2023 to match mock data
   const [currentDate, setCurrentDate] = useState(new Date(2023, 10, 1));
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -79,7 +80,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, meetings, onMoveTask
       date: newMeetingData.date,
       time: newMeetingData.time || '10:00',
       type: newMeetingData.type as 'video' | 'person',
-      attendees: ['u1'] // Default to current user for now
+      attendees: [users[0]?.id] // Default to first user if possible
     };
     
     onAddMeeting(meeting);

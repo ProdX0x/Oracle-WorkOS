@@ -10,7 +10,7 @@ export const USERS: User[] = [
     password: '1234',
     role: 'Team Lead', 
     systemRole: UserRole.ADMIN, 
-    defaultSector: Sector.DEV,
+    sector: Sector.DEV,
     avatar: 'https://picsum.photos/id/64/100/100' 
   },
   { 
@@ -20,7 +20,7 @@ export const USERS: User[] = [
     password: '1234',
     role: 'Architecte', 
     systemRole: UserRole.MEMBER, 
-    defaultSector: Sector.COORDINATION,
+    sector: Sector.COORDINATION,
     avatar: 'https://picsum.photos/id/1005/100/100' 
   },
   { 
@@ -30,7 +30,7 @@ export const USERS: User[] = [
     password: '1234',
     role: 'Designer', 
     systemRole: UserRole.MEMBER, 
-    defaultSector: Sector.DESIGN,
+    sector: Sector.DESIGN,
     avatar: 'https://picsum.photos/id/338/100/100' 
   },
   { 
@@ -40,7 +40,7 @@ export const USERS: User[] = [
     password: '1234',
     role: 'Dev Backend', 
     systemRole: UserRole.MEMBER, 
-    defaultSector: Sector.AUDIO,
+    sector: Sector.AUDIO,
     avatar: 'https://picsum.photos/id/177/100/100' 
   },
   { 
@@ -50,7 +50,7 @@ export const USERS: User[] = [
     password: '1234',
     role: 'Web Analyst', 
     systemRole: UserRole.VISITOR, 
-    defaultSector: Sector.HR,
+    sector: Sector.HR,
     avatar: 'https://picsum.photos/id/342/100/100' 
   },
 ];

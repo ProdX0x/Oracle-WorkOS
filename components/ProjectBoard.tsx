@@ -2,16 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { Task, TaskStatus, Sector, User, UserRole } from '../types';
 import { Calendar as CalendarIcon, Clock, Paperclip, Plus, Send, X, Activity, User as UserIcon, FileText, Trash2, AlertTriangle, CheckSquare, Edit, Save, Lock } from 'lucide-react';
-import { USERS } from '../constants';
 
 interface ProjectBoardProps {
   tasks: Task[];
   sector: Sector;
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   currentUser: User;
+  users: User[]; // Injection de la liste dynamique
 }
 
-const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, currentUser }) => {
+const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, currentUser, users }) => {
   const [draggedTask, setDraggedTask] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -32,10 +32,10 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
     title: '',
     description: '',
     // Utilise le secteur par défaut de l'utilisateur, ou le secteur actuel de la vue, ou DEV par défaut
-    sector: currentUser.defaultSector || (sector === Sector.GENERAL ? Sector.DEV : sector),
+    sector: currentUser.sector || (sector === Sector.GENERAL ? Sector.DEV : sector),
     status: TaskStatus.TODO,
     deadline: new Date().toISOString().split('T')[0],
-    assignee: USERS[0]
+    assignee: users[0] // Utilisation de la liste dynamique
   });
 
   const filteredTasks = sector === Sector.GENERAL 
@@ -128,10 +128,10 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
     setNewTask({
       title: '',
       description: '',
-      sector: currentUser.defaultSector || (sector === Sector.GENERAL ? Sector.DEV : sector),
+      sector: currentUser.sector || (sector === Sector.GENERAL ? Sector.DEV : sector),
       status: TaskStatus.TODO,
       deadline: new Date().toISOString().split('T')[0],
-      assignee: USERS[0]
+      assignee: users[0]
     });
   };
 
@@ -201,7 +201,8 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
     }
   };
 
-  const getUserById = (id: string) => USERS.find(u => u.id === id);
+  // Helper pour trouver un user dans la liste dynamique
+  const getUserById = (id: string) => users.find(u => u.id === id);
 
   return (
     <div className="h-full flex flex-col relative">
@@ -214,7 +215,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">{sector}</h2>
         <div className="flex -space-x-2">
-          {USERS.map(u => (
+          {users.map(u => (
             <img key={u.id} src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full border-2 border-black" title={u.name} />
           ))}
           {canCreate && (
@@ -395,9 +396,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
                         <select 
                            className="bg-black/40 text-white text-sm p-1.5 rounded border border-white/20 w-full"
                            value={editForm.assignee?.id}
-                           onChange={(e) => setEditForm({...editForm, assignee: USERS.find(u => u.id === e.target.value)})}
+                           onChange={(e) => setEditForm({...editForm, assignee: users.find(u => u.id === e.target.value)})}
                         >
-                           {USERS.map(u => (
+                           {users.map(u => (
                               <option key={u.id} value={u.id}>{u.name}</option>
                            ))}
                         </select>
@@ -569,9 +570,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
                          <select 
                             className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:outline-none text-white appearance-none"
                             value={newTask.assignee?.id}
-                            onChange={(e) => setNewTask({...newTask, assignee: USERS.find(u => u.id === e.target.value)})}
+                            onChange={(e) => setNewTask({...newTask, assignee: users.find(u => u.id === e.target.value)})}
                          >
-                            {USERS.map(u => (
+                            {users.map(u => (
                                <option key={u.id} value={u.id} className="bg-gray-900 text-white">
                                   {u.name}
                                </option>
@@ -602,7 +603,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
                             onChange={(e) => setNewTask({...newTask, sector: e.target.value as Sector})}
                          >
                             {Object.values(Sector).map(s => (
-                               <option key={s} value={s} className={`bg-gray-900 text-white ${s === currentUser.defaultSector ? 'font-bold text-blue-400' : ''}`}>
+                               <option key={s} value={s} className={`bg-gray-900 text-white ${s === currentUser.sector ? 'font-bold text-blue-400' : ''}`}>
                                   {s}
                                </option>
                             ))}

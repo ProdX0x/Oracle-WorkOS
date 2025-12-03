@@ -31,7 +31,7 @@ export interface User {
   avatar: string;
   role: string; // Titre du poste (ex: Designer)
   systemRole: UserRole; // Rôle technique (ex: Admin)
-  defaultSector?: Sector; // Secteur de rattachement par défaut
+  sector?: Sector; // Secteur de rattachement
 }
 
 export interface TaskActivity {

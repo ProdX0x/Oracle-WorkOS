@@ -1,9 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MessageSquare, ExternalLink } from 'lucide-react';
-import { USERS } from '../constants';
+import { User } from '../types';
 
-const VirtualRoom: React.FC = () => {
+interface VirtualRoomProps {
+  users: User[];
+}
+
+const VirtualRoom: React.FC<VirtualRoomProps> = ({ users }) => {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
@@ -13,11 +17,11 @@ const VirtualRoom: React.FC = () => {
   useEffect(() => {
     if (isLiveMode) return;
     const interval = setInterval(() => {
-      const randomUser = USERS[Math.floor(Math.random() * USERS.length)];
-      setActiveSpeaker(randomUser.id);
+      const randomUser = users[Math.floor(Math.random() * users.length)];
+      if (randomUser) setActiveSpeaker(randomUser.id);
     }, 3000);
     return () => clearInterval(interval);
-  }, [isLiveMode]);
+  }, [isLiveMode, users]);
 
   return (
     <div className="flex flex-col h-full w-full bg-black/40 rounded-3xl overflow-hidden relative border border-white/5">
@@ -52,7 +56,7 @@ const VirtualRoom: React.FC = () => {
         <>
           {/* Grid Vidéo */}
           <div className="flex-1 grid grid-cols-2 gap-4 p-4 mt-8 mb-20 overflow-y-auto no-scrollbar">
-            {USERS.map((user) => (
+            {users.map((user) => (
               <div 
                 key={user.id} 
                 className={`relative rounded-2xl overflow-hidden bg-gray-900 aspect-video group transition-all duration-300 ${activeSpeaker === user.id ? 'ring-2 ring-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]' : 'border border-white/5'}`}

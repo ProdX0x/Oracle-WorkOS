@@ -8,15 +8,13 @@ import CalendarView from './components/CalendarView';
 import TeamDashboard from './components/TeamDashboard';
 import StrategyView from './components/StrategyView';
 import AuthScreen from './components/AuthScreen';
-import MobileLayout from './components/MobileLayout'; // Import Mobile Companion
-import { INITIAL_TASKS, INITIAL_MEETINGS, USERS } from './constants';
+import MobileLayout from './components/MobileLayout';
+import { INITIAL_TASKS, INITIAL_MEETINGS, USERS as INITIAL_USERS } from './constants';
 import { Sector, Task, Meeting, User, ChatMessage, AnalysisHistoryItem, UserRole } from './types';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'workspace' | 'calendar' | 'video' | 'strategy'>('dashboard');
   const [activeSector, setActiveSector] = useState<Sector>(Sector.GENERAL);
-  
-  // -- RESPONSIVE DETECTION --
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -29,36 +27,12 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
-  // Vérification de la session au démarrage
-  useEffect(() => {
-    const checkSession = () => {
-      const savedSession = localStorage.getItem('oracle_session');
-      if (savedSession) {
-        try {
-          const user = JSON.parse(savedSession);
-          setCurrentUser(user);
-        } catch (e) {
-          console.error("Session invalide");
-          localStorage.removeItem('oracle_session');
-        }
-      }
-      setIsAuthChecking(false);
-    };
-    
-    setTimeout(checkSession, 500);
-  }, []);
-
-  const handleLogin = (user: User) => {
-    setCurrentUser(user);
-    localStorage.setItem('oracle_session', JSON.stringify(user));
-  };
-
-  const handleLogout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('oracle_session');
-  };
-  
-  // -- PERSISTANCE DES DONNÉES --
+  // -- GLOBAL STATE (Dynamic Data) --
+  // Users : Chargés depuis le localStorage ou initialisés avec la constante (Migration progressive)
+  const [users, setUsers] = useState<User[]>(() => {
+      const saved = localStorage.getItem('oracle_users');
+      return saved ? JSON.parse(saved) : INITIAL_USERS;
+  });
 
   // Tâches
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -89,26 +63,62 @@ const App: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Sauvegarde automatique
+  // -- PERSISTENCE --
   useEffect(() => { localStorage.setItem('oracle_tasks', JSON.stringify(tasks)); }, [tasks]);
   useEffect(() => { localStorage.setItem('oracle_meetings', JSON.stringify(meetings)); }, [meetings]);
   useEffect(() => { localStorage.setItem('oracle_chat', JSON.stringify(chatMessages)); }, [chatMessages]);
   useEffect(() => { localStorage.setItem('oracle_ai_history', JSON.stringify(aiHistory)); }, [aiHistory]);
+  useEffect(() => { localStorage.setItem('oracle_users', JSON.stringify(users)); }, [users]); // Nouvelle persistance des users
 
+  // -- AUTH CHECK --
+  useEffect(() => {
+    const checkSession = () => {
+      const savedSession = localStorage.getItem('oracle_session');
+      if (savedSession) {
+        try {
+          const user = JSON.parse(savedSession);
+          // On vérifie si l'user existe toujours dans notre liste dynamique
+          const refreshedUser = users.find(u => u.id === user.id);
+          setCurrentUser(refreshedUser || user);
+        } catch (e) {
+          console.error("Session invalide");
+          localStorage.removeItem('oracle_session');
+        }
+      }
+      setIsAuthChecking(false);
+    };
+    
+    setTimeout(checkSession, 500);
+  }, [users]); // Re-vérifie si la liste des users change
+
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
+    localStorage.setItem('oracle_session', JSON.stringify(user));
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('oracle_session');
+  };
+
+  // -- ADMIN ACTIONS --
+  const handleUpdateUser = (updatedUser: User) => {
+      setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+      // Si on modifie l'utilisateur courant, on met à jour la session
+      if (currentUser?.id === updatedUser.id) {
+          setCurrentUser(updatedUser);
+          localStorage.setItem('oracle_session', JSON.stringify(updatedUser));
+      }
+  };
+
+  // -- SYNC EVENTS --
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'oracle_chat' && e.newValue) {
-        setChatMessages(JSON.parse(e.newValue));
-      }
-      if (e.key === 'oracle_tasks' && e.newValue) {
-        setTasks(JSON.parse(e.newValue));
-      }
-      if (e.key === 'oracle_meetings' && e.newValue) {
-        setMeetings(JSON.parse(e.newValue));
-      }
-      if (e.key === 'oracle_session' && !e.newValue) {
-        setCurrentUser(null);
-      }
+      if (e.key === 'oracle_chat' && e.newValue) setChatMessages(JSON.parse(e.newValue));
+      if (e.key === 'oracle_tasks' && e.newValue) setTasks(JSON.parse(e.newValue));
+      if (e.key === 'oracle_meetings' && e.newValue) setMeetings(JSON.parse(e.newValue));
+      if (e.key === 'oracle_users' && e.newValue) setUsers(JSON.parse(e.newValue));
+      if (e.key === 'oracle_session' && !e.newValue) setCurrentUser(null);
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -136,13 +146,7 @@ const App: React.FC = () => {
     setNewMessage('');
   };
 
-  const getUserById = (id: string) => {
-      const staticUser = USERS.find(u => u.id === id);
-      if (staticUser) return staticUser;
-      
-      const localUsers = JSON.parse(localStorage.getItem('oracle_local_users') || '[]');
-      return localUsers.find((u: any) => u.id === id);
-  };
+  const getUserById = (id: string) => users.find(u => u.id === id);
 
   if (isAuthChecking) {
      return (
@@ -153,7 +157,7 @@ const App: React.FC = () => {
   }
 
   if (!currentUser) {
-    return <AuthScreen onLogin={handleLogin} />;
+    return <AuthScreen onLogin={handleLogin} users={users} />;
   }
 
   // --- MOBILE LAYOUT ---
@@ -169,6 +173,7 @@ const App: React.FC = () => {
         onSendMessage={handleSendMessage}
         onLogout={handleLogout}
         setTasks={setTasks}
+        users={users}
       />
     );
   }
@@ -294,6 +299,8 @@ const App: React.FC = () => {
               currentUser={currentUser}
               tasks={tasks}
               meetings={meetings}
+              users={users} // Passage de la liste dynamique
+              onUpdateUser={handleUpdateUser} // Passage de la fonction d'admin
             />
           )}
 
@@ -303,6 +310,7 @@ const App: React.FC = () => {
               sector={activeSector} 
               setTasks={setTasks} 
               currentUser={currentUser}
+              users={users} // Passage de la liste dynamique
             />
           )}
 
@@ -318,7 +326,7 @@ const App: React.FC = () => {
             <div className="h-full flex flex-col">
               <h2 className="text-2xl font-bold mb-4">Salle de Réunion Virtuelle</h2>
               <div className="flex-1">
-                <VirtualRoom />
+                <VirtualRoom users={users} />
               </div>
             </div>
           )}
@@ -327,6 +335,7 @@ const App: React.FC = () => {
             <CalendarView 
               tasks={tasks} 
               meetings={meetings}
+              users={users}
               onMoveTask={(taskId, newDate) => {
                 setTasks(prev => prev.map(t => t.id === taskId ? { ...t, deadline: newDate } : t));
               }}
@@ -404,7 +413,6 @@ const App: React.FC = () => {
                   <button 
                     onClick={() => handleSendMessage()}
                     className="p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                    disabled={!newMessage.trim()}
                   >
                     <Send size={14} />
                   </button>

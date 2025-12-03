@@ -1,21 +1,28 @@
 
-import React from 'react';
-import { Task, Meeting, User, TaskStatus } from '../types';
-import { CheckCircle2, Clock, Calendar as CalendarIcon, PieChart, AlertCircle, ArrowUpRight, Video, Users } from 'lucide-react';
+import React, { useState } from 'react';
+import { Task, Meeting, User, TaskStatus, UserRole, Sector } from '../types';
+import { CheckCircle2, Clock, Calendar as CalendarIcon, PieChart, AlertCircle, ArrowUpRight, Video, Users, Settings, Save, Shield } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface TeamDashboardProps {
   currentUser: User;
   tasks: Task[];
   meetings: Meeting[];
+  users?: User[]; // Liste dynamique des utilisateurs
+  onUpdateUser?: (updatedUser: User) => void; // Fonction de mise à jour (Admin)
 }
 
-const TeamDashboard: React.FC<TeamDashboardProps> = ({ currentUser, tasks, meetings }) => {
+const TeamDashboard: React.FC<TeamDashboardProps> = ({ currentUser, tasks, meetings, users, onUpdateUser }) => {
   // Filtrer les données pour l'utilisateur connecté
   const myTasks = tasks.filter(t => t.assignee.id === currentUser.id);
   const myMeetings = meetings
     .filter(m => m.attendees.includes(currentUser.id))
     .sort((a, b) => new Date(a.date + 'T' + a.time).getTime() - new Date(b.date + 'T' + b.time).getTime());
+
+  // Gestion de l'admin
+  const isAdmin = currentUser.systemRole === UserRole.ADMIN;
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editUserForm, setEditUserForm] = useState<Partial<User>>({});
 
   // Calcul des statistiques
   const totalTasks = myTasks.length;
@@ -42,6 +49,18 @@ const TeamDashboard: React.FC<TeamDashboardProps> = ({ currentUser, tasks, meeti
     { name: 'En revue', value: reviewTasks, color: '#a855f7' },
     { name: 'Terminé', value: completedTasks, color: '#10b981' },
   ];
+
+  const handleEditUser = (user: User) => {
+    setEditingUserId(user.id);
+    setEditUserForm(user);
+  };
+
+  const handleSaveUser = () => {
+    if (onUpdateUser && editUserForm.id) {
+        onUpdateUser(editUserForm as User);
+        setEditingUserId(null);
+    }
+  };
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pr-2">
@@ -70,6 +89,73 @@ const TeamDashboard: React.FC<TeamDashboardProps> = ({ currentUser, tasks, meeti
             </div>
         </div>
       </div>
+
+      {/* ADMIN PANEL (Only visible to Steve) */}
+      {isAdmin && users && (
+          <div className="mb-8 p-6 bg-gray-900/50 border border-yellow-500/20 rounded-3xl">
+              <div className="flex items-center gap-2 mb-4">
+                  <Shield className="text-yellow-500" />
+                  <h2 className="text-xl font-bold text-white">Gestion de l'Équipe (Admin)</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {users.map(user => (
+                      <div key={user.id} className="bg-black/40 p-4 rounded-xl border border-white/10 flex flex-col gap-3">
+                          <div className="flex items-center gap-3">
+                              <img src={user.avatar} className="w-10 h-10 rounded-full" />
+                              <div>
+                                  <div className="font-bold">{user.name}</div>
+                                  <div className="text-xs text-gray-400">{user.email}</div>
+                              </div>
+                              {editingUserId === user.id ? (
+                                  <button onClick={handleSaveUser} className="ml-auto p-2 bg-green-500/20 text-green-400 rounded-lg">
+                                      <Save size={16} />
+                                  </button>
+                              ) : (
+                                  <button onClick={() => handleEditUser(user)} className="ml-auto p-2 bg-white/5 text-gray-400 hover:text-white rounded-lg">
+                                      <Settings size={16} />
+                                  </button>
+                              )}
+                          </div>
+                          
+                          {editingUserId === user.id ? (
+                              <div className="space-y-2 text-sm">
+                                  <div>
+                                      <label className="text-xs text-gray-500 block">Rôle Système</label>
+                                      <select 
+                                          className="w-full bg-black border border-white/20 rounded p-1"
+                                          value={editUserForm.systemRole}
+                                          onChange={e => setEditUserForm({...editUserForm, systemRole: e.target.value as UserRole})}
+                                      >
+                                          {Object.values(UserRole).map(r => <option key={r} value={r}>{r}</option>)}
+                                      </select>
+                                  </div>
+                                  <div>
+                                      <label className="text-xs text-gray-500 block">Secteur</label>
+                                      <select 
+                                          className="w-full bg-black border border-white/20 rounded p-1"
+                                          value={editUserForm.sector}
+                                          onChange={e => setEditUserForm({...editUserForm, sector: e.target.value as Sector})}
+                                      >
+                                          {Object.values(Sector).map(s => <option key={s} value={s}>{s}</option>)}
+                                      </select>
+                                  </div>
+                              </div>
+                          ) : (
+                              <div className="flex gap-2 text-xs">
+                                  <span className={`px-2 py-0.5 rounded border ${user.systemRole === UserRole.ADMIN ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' : 'bg-blue-500/10 border-blue-500/30 text-blue-400'}`}>
+                                      {user.systemRole}
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded border bg-white/5 border-white/10 text-gray-400">
+                                      {user.sector || 'Sans secteur'}
+                                  </span>
+                              </div>
+                          )}
+                      </div>
+                  ))}
+              </div>
+          </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         

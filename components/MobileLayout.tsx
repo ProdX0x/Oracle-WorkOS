@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { LayoutDashboard, CheckSquare, MessageSquare, BrainCircuit, User as UserIcon, LogOut, Send, Plus } from 'lucide-react';
 import { User, Task, Meeting, ChatMessage, AnalysisHistoryItem, Sector, TaskStatus } from '../types';
@@ -15,6 +14,7 @@ interface MobileLayoutProps {
   onSendMessage: (text: string) => void;
   onLogout: () => void;
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  users: User[];
 }
 
 const MobileLayout: React.FC<MobileLayoutProps> = ({ 
@@ -26,7 +26,8 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
   setAiHistory, 
   onSendMessage, 
   onLogout,
-  setTasks
+  setTasks,
+  users
 }) => {
   const [activeTab, setActiveTab] = useState<'home' | 'tasks' | 'chat' | 'ai'>('home');
   const [newMessage, setNewMessage] = useState('');
@@ -51,7 +52,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
       case 'home':
         return (
           <div className="h-full overflow-y-auto pb-20 pt-16 bg-black">
-             <TeamDashboard currentUser={currentUser} tasks={tasks} meetings={meetings} />
+             <TeamDashboard currentUser={currentUser} tasks={tasks} meetings={meetings} users={users} />
           </div>
         );
       

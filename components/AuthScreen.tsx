@@ -1,14 +1,13 @@
-
-import React, { useState, useRef, useEffect } from 'react';
-import { LayoutGrid, Mail, Lock, User as UserIcon, ArrowRight, ShieldCheck, AlertCircle, Users, X, Grip } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { LayoutGrid, Mail, Lock, User as UserIcon, ArrowRight, ShieldCheck, AlertCircle, X, Grip } from 'lucide-react';
 import { User, UserRole } from '../types';
-import { USERS } from '../constants';
 
 interface AuthScreenProps {
   onLogin: (user: User) => void;
+  users: User[];
 }
 
-const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
+const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin, users }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'form'>('grid');
   const [isLoginMode, setIsLoginMode] = useState(true);
   
@@ -29,14 +28,8 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
     setLoading(true);
 
     setTimeout(() => {
-      // 1. Static Users
-      const staticUser = USERS.find(u => u.email === email && u.password === password);
-      
-      // 2. Local Users
-      const localUsers = JSON.parse(localStorage.getItem('oracle_local_users') || '[]');
-      const localUser = localUsers.find((u: any) => u.email === email && u.password === password);
-
-      const foundUser = staticUser || localUser;
+      // Check against the users prop provided by App component
+      const foundUser = users.find(u => u.email === email && u.password === password);
 
       if (foundUser) {
         onLogin(foundUser);
@@ -62,11 +55,9 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
     setLoading(true);
 
     setTimeout(() => {
-      const staticExists = USERS.some(u => u.email === email);
-      const localUsers = JSON.parse(localStorage.getItem('oracle_local_users') || '[]');
-      const localExists = localUsers.some((u: any) => u.email === email);
+      const exists = users.some(u => u.email === email);
 
-      if (staticExists || localExists) {
+      if (exists) {
         setError("Cet email est déjà utilisé.");
         setLoading(false);
         return;
@@ -82,7 +73,8 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         systemRole: UserRole.MEMBER
       };
 
-      localStorage.setItem('oracle_local_users', JSON.stringify([...localUsers, newUser]));
+      // Note: Ideally, this should update the users state in App.tsx via a callback
+      // For now, we just log the user in locally.
       onLogin(newUser);
     }, 1000);
   };
@@ -154,7 +146,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         {viewMode === 'grid' && (
           <div className="w-full animate-in fade-in zoom-in duration-300">
              <div className="flex flex-wrap justify-center gap-6">
-                {USERS.map((user) => (
+                {users.map((user) => (
                   <button 
                     key={user.id}
                     onClick={() => handleAvatarClick(user)}
