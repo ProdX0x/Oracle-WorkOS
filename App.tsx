@@ -7,7 +7,8 @@ import VirtualRoom from './components/VirtualRoom';
 import CalendarView from './components/CalendarView';
 import TeamDashboard from './components/TeamDashboard';
 import StrategyView from './components/StrategyView';
-import AuthScreen from './components/AuthScreen'; // Import du nouveau composant
+import AuthScreen from './components/AuthScreen';
+import MobileLayout from './components/MobileLayout'; // Import Mobile Companion
 import { INITIAL_TASKS, INITIAL_MEETINGS, USERS } from './constants';
 import { Sector, Task, Meeting, User, ChatMessage, AnalysisHistoryItem, UserRole } from './types';
 
@@ -15,6 +16,15 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'workspace' | 'calendar' | 'video' | 'strategy'>('dashboard');
   const [activeSector, setActiveSector] = useState<Sector>(Sector.GENERAL);
   
+  // -- RESPONSIVE DETECTION --
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // -- AUTHENTIFICATION --
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
@@ -35,20 +45,17 @@ const App: React.FC = () => {
       setIsAuthChecking(false);
     };
     
-    // Petit délai pour simuler un chargement d'app (effet premium)
     setTimeout(checkSession, 500);
   }, []);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
-    // Sauvegarde de la session
     localStorage.setItem('oracle_session', JSON.stringify(user));
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('oracle_session');
-    // On nettoie aussi potentiellement d'autres états volatils si nécessaire
   };
   
   // -- PERSISTANCE DES DONNÉES --
@@ -88,7 +95,6 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('oracle_chat', JSON.stringify(chatMessages)); }, [chatMessages]);
   useEffect(() => { localStorage.setItem('oracle_ai_history', JSON.stringify(aiHistory)); }, [aiHistory]);
 
-  // Synchronisation en temps réel entre les onglets
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'oracle_chat' && e.newValue) {
@@ -100,7 +106,6 @@ const App: React.FC = () => {
       if (e.key === 'oracle_meetings' && e.newValue) {
         setMeetings(JSON.parse(e.newValue));
       }
-      // Logout sync (si je me déconnecte dans un onglet, ça me déconnecte partout)
       if (e.key === 'oracle_session' && !e.newValue) {
         setCurrentUser(null);
       }
@@ -110,20 +115,19 @@ const App: React.FC = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Scroll automatique du chat
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [chatMessages, activeTab]);
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !currentUser) return;
+  const handleSendMessage = (text: string = newMessage) => {
+    if (!text.trim() || !currentUser) return;
     
     const msg: ChatMessage = {
       id: `msg-${Date.now()}`,
       senderId: currentUser.id,
-      text: newMessage,
+      text: text,
       timestamp: new Date().toISOString(),
       sector: activeSector
     };
@@ -140,7 +144,6 @@ const App: React.FC = () => {
       return localUsers.find((u: any) => u.id === id);
   };
 
-  // -- ÉCRAN DE CHARGEMENT / LOGIN --
   if (isAuthChecking) {
      return (
         <div className="w-screen h-screen bg-black flex items-center justify-center">
@@ -153,7 +156,24 @@ const App: React.FC = () => {
     return <AuthScreen onLogin={handleLogin} />;
   }
 
-  // Filtrage des messages par secteur (ou général)
+  // --- MOBILE LAYOUT ---
+  if (isMobile) {
+    return (
+      <MobileLayout 
+        currentUser={currentUser}
+        tasks={tasks}
+        meetings={meetings}
+        chatMessages={chatMessages}
+        aiHistory={aiHistory}
+        setAiHistory={setAiHistory}
+        onSendMessage={handleSendMessage}
+        onLogout={handleLogout}
+        setTasks={setTasks}
+      />
+    );
+  }
+
+  // --- DESKTOP LAYOUT ---
   const displayedMessages = activeSector === Sector.GENERAL 
     ? chatMessages 
     : chatMessages.filter(m => m.sector === activeSector || !m.sector);
@@ -382,7 +402,7 @@ const App: React.FC = () => {
                     className="flex-1 bg-transparent border-none outline-none text-sm text-white placeholder-gray-500"
                   />
                   <button 
-                    onClick={handleSendMessage}
+                    onClick={() => handleSendMessage()}
                     className="p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                     disabled={!newMessage.trim()}
                   >
