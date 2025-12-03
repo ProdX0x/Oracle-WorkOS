@@ -6,46 +6,51 @@ export const USERS: User[] = [
   { 
     id: 'u1', 
     name: 'Steve', 
-    email: 'steve@oracle.com',
+    email: 'steve@equipe.com',
     password: '1234',
     role: 'Team Lead', 
     systemRole: UserRole.ADMIN, 
+    defaultSector: Sector.DEV,
     avatar: 'https://picsum.photos/id/64/100/100' 
   },
   { 
     id: 'u2', 
     name: 'Pascale', 
-    email: 'pascale@oracle.com',
+    email: 'pascale@equipe.com',
     password: '1234',
     role: 'Architecte', 
     systemRole: UserRole.MEMBER, 
+    defaultSector: Sector.COORDINATION,
     avatar: 'https://picsum.photos/id/1005/100/100' 
   },
   { 
     id: 'u3', 
     name: 'Nathalie', 
-    email: 'nathalie@oracle.com',
+    email: 'nathalie@equipe.com',
     password: '1234',
     role: 'Designer', 
     systemRole: UserRole.MEMBER, 
+    defaultSector: Sector.DESIGN,
     avatar: 'https://picsum.photos/id/338/100/100' 
   },
   { 
     id: 'u4', 
-    name: 'Ekra', 
-    email: 'ekra@oracle.com',
+    name: 'Ekra Karim', 
+    email: 'ekra@equipe.com',
     password: '1234',
     role: 'Dev Backend', 
     systemRole: UserRole.MEMBER, 
+    defaultSector: Sector.AUDIO,
     avatar: 'https://picsum.photos/id/177/100/100' 
   },
   { 
     id: 'u5', 
     name: 'Priscille', 
-    email: 'priscille@oracle.com',
+    email: 'priscille@equipe.com',
     password: '1234',
     role: 'Web Analyst', 
     systemRole: UserRole.VISITOR, 
+    defaultSector: Sector.HR,
     avatar: 'https://picsum.photos/id/342/100/100' 
   },
 ];

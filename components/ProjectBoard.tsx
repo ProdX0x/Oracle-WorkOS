@@ -31,7 +31,8 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
   const [newTask, setNewTask] = useState<Partial<Task>>({
     title: '',
     description: '',
-    sector: sector === Sector.GENERAL ? Sector.DEV : sector,
+    // Utilise le secteur par défaut de l'utilisateur, ou le secteur actuel de la vue, ou DEV par défaut
+    sector: currentUser.defaultSector || (sector === Sector.GENERAL ? Sector.DEV : sector),
     status: TaskStatus.TODO,
     deadline: new Date().toISOString().split('T')[0],
     assignee: USERS[0]
@@ -123,11 +124,11 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
     setNotification("Nouvelle tâche créée");
     setTimeout(() => setNotification(null), 3000);
     
-    // Reset form
+    // Reset form with default sector logic
     setNewTask({
       title: '',
       description: '',
-      sector: sector === Sector.GENERAL ? Sector.DEV : sector,
+      sector: currentUser.defaultSector || (sector === Sector.GENERAL ? Sector.DEV : sector),
       status: TaskStatus.TODO,
       deadline: new Date().toISOString().split('T')[0],
       assignee: USERS[0]
@@ -601,7 +602,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ tasks, sector, setTasks, cu
                             onChange={(e) => setNewTask({...newTask, sector: e.target.value as Sector})}
                          >
                             {Object.values(Sector).map(s => (
-                               <option key={s} value={s} className="bg-gray-900 text-white">{s}</option>
+                               <option key={s} value={s} className={`bg-gray-900 text-white ${s === currentUser.defaultSector ? 'font-bold text-blue-400' : ''}`}>
+                                  {s}
+                               </option>
                             ))}
                          </select>
                    </div>

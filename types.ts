@@ -3,7 +3,11 @@ export enum Sector {
   DESIGN = 'Design & UX',
   DEV = 'Développement',
   MARKETING = 'Marketing',
-  GENERAL = 'Général'
+  GENERAL = 'Général',
+  // Nouveaux secteurs demandés
+  COORDINATION = 'Coordination',
+  HR = 'Ressources',
+  AUDIO = 'Audio'
 }
 
 export enum TaskStatus {
@@ -27,6 +31,7 @@ export interface User {
   avatar: string;
   role: string; // Titre du poste (ex: Designer)
   systemRole: UserRole; // Rôle technique (ex: Admin)
+  defaultSector?: Sector; // Secteur de rattachement par défaut
 }
 
 export interface TaskActivity {
