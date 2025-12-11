@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { Task, AIAnalysisResult } from "../types";
 
@@ -7,11 +6,21 @@ const cleanJsonString = (str: string): string => {
   return str.replace(/```json/g, '').replace(/```/g, '').trim();
 };
 
-export const analyzeProjectProgress = async (tasks: Task[]): Promise<AIAnalysisResult> => {
-  if (!process.env.API_KEY) {
-    throw new Error("La clé API (process.env.API_KEY) est manquante.");
+// Récupération sécurisée de la clé API via Vite env
+// NOTE: Dans une SPA React, la clé est visible dans l'onglet Network du navigateur.
+// Pour une sécurité totale, il faudrait passer par un backend proxy.
+const getApiKey = (): string => {
+  const apiKey = import.meta.env.VITE_API_KEY;
+  if (!apiKey) {
+    console.error("Configuration Error: VITE_API_KEY is missing via import.meta.env");
+    throw new Error("La clé API est manquante. Veuillez configurer VITE_API_KEY dans votre fichier .env ou vos variables de déploiement.");
   }
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  return apiKey;
+};
+
+export const analyzeProjectProgress = async (tasks: Task[]): Promise<AIAnalysisResult> => {
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
 
   const taskSummary = tasks.map(t => 
     `- ${t.title} (${t.status}) assigné à ${t.assignee.name} dans le secteur ${t.sector}. Deadline: ${t.deadline}. Description: ${t.description}`
@@ -86,10 +95,8 @@ export const analyzeProjectProgress = async (tasks: Task[]): Promise<AIAnalysisR
 
 // Nouvelle fonction pour évaluer l'impact stratégique d'une tâche
 export const evaluateTaskStrategy = async (taskTitle: string, taskDescription: string): Promise<{ impactScore: number, effortScore: number, strategicTheme: string, aiRationale: string }> => {
-  if (!process.env.API_KEY) {
-    throw new Error("Clé API manquante");
-  }
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
     Analyse la tâche suivante pour un projet d'application mobile d'entreprise "Oracle Navigator".
