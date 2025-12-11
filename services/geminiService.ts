@@ -6,14 +6,12 @@ const cleanJsonString = (str: string): string => {
   return str.replace(/```json/g, '').replace(/```/g, '').trim();
 };
 
-// Récupération sécurisée de la clé API via Vite env
-// NOTE: Dans une SPA React, la clé est visible dans l'onglet Network du navigateur.
-// Pour une sécurité totale, il faudrait passer par un backend proxy.
+// Récupération sécurisée de la clé API via process.env
 const getApiKey = (): string => {
-  const apiKey = import.meta.env.VITE_API_KEY;
+  const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    console.error("Configuration Error: VITE_API_KEY is missing via import.meta.env");
-    throw new Error("La clé API est manquante. Veuillez configurer VITE_API_KEY dans votre fichier .env ou vos variables de déploiement.");
+    console.error("Configuration Error: API_KEY is missing via process.env");
+    throw new Error("La clé API est manquante. Veuillez configurer API_KEY dans votre environnement.");
   }
   return apiKey;
 };
